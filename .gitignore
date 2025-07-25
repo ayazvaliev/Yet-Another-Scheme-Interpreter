@@ -39,3 +39,12 @@
 
 # debug information files
 *.dwo
+
+*.json
+
+# CMake
+.cache/
+build/
+
+# clangd config
+.clangd
