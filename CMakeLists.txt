@@ -21,8 +21,8 @@ target_compile_options(scheme-interpreter PRIVATE -Wall -Wextra -Wpedantic)
 # Debug mode
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Compiling in Debug mode")
-    target_compile_definitions(MyTarget PRIVATE DEBUG)
-    target_compile_options(MyTarget PRIVATE -g -O0)
+    target_compile_definitions(scheme-interpreter PRIVATE DEBUG)
+    target_compile_options(scheme-interpreter PRIVATE -g -O0)
 endif()
 
 option(ENABLE_TESTING "Enable tests" ON)

@@ -11,3 +11,9 @@ target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
 
 include(Catch)
 catch_discover_tests(unit_tests)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Compiling in Debug mode")
+    target_compile_definitions(unit_tests PRIVATE DEBUG)
+    target_compile_options(unit_tests PRIVATE -g -O0)
+endif()

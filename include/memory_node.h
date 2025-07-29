@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <unordered_set>
 
 class Object;
 class Cleaner;
@@ -23,8 +24,8 @@ protected:
     void SetMark();
     void ResetMark();
 
-    std::vector<MemoryNode*> dependencies_;
-    std::vector<MemoryNode*> upper_dependencies_;
+    std::unordered_set<MemoryNode*> dependencies_;
+    std::unordered_set<MemoryNode*> upper_dependencies_;
     bool marked_;
 
 };
@@ -32,11 +33,13 @@ protected:
 
 class Cleaner {
 public:
+    Cleaner() = default;
+
     template<typename T, typename... Args>
     requires std::is_base_of_v<MemoryNode, T>
     Object* Make(Args... args) {
         auto new_obj = new T(std::forward<Args>(args)...);
-        nodes_.push_back(new_obj);
+        nodes_.push_back(static_cast<MemoryNode*>(new_obj));
         return new_obj;
     }
 

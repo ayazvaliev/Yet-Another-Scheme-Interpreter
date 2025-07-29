@@ -1,41 +1,29 @@
 #include "memory_node.h"
 #include "object.h"
-#include <cstddef>
 #include <memory>
 
-const std::unique_ptr<Cleaner> Cleaner::kCleaner = std::unique_ptr<Cleaner>();
+const std::unique_ptr<Cleaner> Cleaner::kCleaner = std::make_unique<Cleaner>();
 int Cleaner::counter = 0;
 
 void MemoryNode::AddDependency(MemoryNode* obj) {
-    if (obj == nullptr || obj == this) {
-        return;
-    }
-    dependencies_.push_back(obj);
-    obj->upper_dependencies_.push_back(this);
+    if (obj == nullptr || obj == this || dependencies_.contains(obj)) {
+            return;
+        }
+    dependencies_.insert(obj);
+    obj->upper_dependencies_.insert(this);
 }
 
 void MemoryNode::RemoveDependency(MemoryNode* obj) {
-    if (obj == nullptr || obj == this) {
-        return;
-    }
-    for (size_t i = 0; i < dependencies_.size(); ++i) {
-        if (dependencies_[i] == obj) {
-            dependencies_[i] = nullptr;
+   if (obj == nullptr || obj == this) {
+            return;
         }
-    }
-    for (size_t i = 0; i < obj->upper_dependencies_.size(); ++i) {
-        if (obj->upper_dependencies_[i] == this) {
-            obj->upper_dependencies_[i] = nullptr;
-        }
-    }
+    dependencies_.erase(obj);
+    obj->upper_dependencies_.erase(this);
 }
 
 void MemoryNode::SetMark() {
     marked_ = true;
     for (MemoryNode* dependants : dependencies_) {
-        if (dependants == nullptr) {
-            continue;
-        }
         if (!dependants->marked_) {
             dependants->SetMark();
         }
@@ -50,27 +38,24 @@ void Cleaner::Sweep(MemoryNode* main_scope) {
     UnmarkAll();
     Mark(main_scope);
 
+    std::vector<MemoryNode*> new_nodes;
     for (auto& curr_obj : nodes_) {
         if (curr_obj == nullptr) {
             continue;
         }
         if (!curr_obj->marked_) {
             for (MemoryNode* upper_obj : curr_obj->upper_dependencies_) {
-                if (upper_obj == nullptr) {
-                    continue;
-                }
-                upper_obj->RemoveDependency(curr_obj);
+                upper_obj->dependencies_.erase(curr_obj);     
             }
             for (MemoryNode* lower_obj : curr_obj->dependencies_) {
-                if (lower_obj == nullptr) {
-                    continue;
-                }
-                curr_obj->RemoveDependency(lower_obj);
+                lower_obj->upper_dependencies_.erase(curr_obj);
             }
+            delete curr_obj;
+        } else {
+            new_nodes.push_back(curr_obj);
         }
-        delete curr_obj;
-        curr_obj = nullptr;
     }
+    nodes_ = std::move(new_nodes);
 }
 
 Scope* Cleaner::MakeScope(Scope* parent_scope) {

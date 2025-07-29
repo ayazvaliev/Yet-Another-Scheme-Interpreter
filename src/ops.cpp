@@ -405,7 +405,7 @@ Object* Quote::PerformOnArgs() {
     return quoted_object_;
 }
 
-IfStatement::IfStatement(Object* arg_obj, Scope* scope) {
+IfStatement::IfStatement(Object* arg_obj, Scope* scope) : condition_(nullptr), true_branch_(nullptr), false_branch_(nullptr) {
     scope_ = scope;
 
     if (!Is<Cell>(arg_obj)) {
@@ -439,11 +439,13 @@ Object* IfStatement::PerformOnArgs() {
     bool state = true;
 
     if (Is<Symbol>(condition_)) {
-            if (As<Symbol>(condition_)->GetName() != "#f") {
-                state = true;
-            } else {
-                state = false;
-            }
+        if (As<Symbol>(condition_)->GetName() != "#f") {
+            state = true;
+        } else {
+            state = false;
+        }
+    } else {
+        state = true;
     }
     if (state) {
         return true_branch_->Exec(scope_);

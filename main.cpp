@@ -9,6 +9,7 @@ int main() {
 
     while (true) {
         std::cout << "=> ";
+        std::string debug_query = "#t";
         std::getline(std::cin, query);
         if (std::cin.eof() || query == "q") {
             std::cerr << "Exiting" << std::endl;
